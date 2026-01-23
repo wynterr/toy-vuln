@@ -3,15 +3,16 @@
 #include <stdio.h>
 
 void vulnerable_function(const uint8_t *data, size_t size) {
-    char buffer[12]; // Small buffer
+    volatile char buffer[12]; 
 
-    // BUG: logic error. We check for size > 20, but we memcpy 'size' bytes.
-    // If input is 15 bytes, it passes the check but overflows the 12-byte buffer.
     if (size > 0 && data[0] == 'B') {
         if (size > 20) {
-             return; // "Safety" check
+             return; 
         }
-        // VULNERABILITY: Stack Buffer Overflow (13-20 bytes will crash)
-        memcpy(buffer, data, size);
+        
+        // Because 'buffer' is volatile, the compiler is forced 
+        // to perform this write, which will trigger the crash.
+        // Cast to (void*) to silence "discard qualifiers" warning if needed
+        memcpy((void*)buffer, data, size);
     }
 }
